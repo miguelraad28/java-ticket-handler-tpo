@@ -12,7 +12,7 @@ public class SistemaTickets {
     private static Random random;
     private static long tiempoInicioDeSolucion;
 
-    /**
+/**
  * Inicializa las estructuras del sistema: cola de tickets, árbol de tickets resueltos,
  * scanner para entrada por consola y generador aleatorio.
  */
@@ -23,7 +23,7 @@ public class SistemaTickets {
         random = new Random();
     }
 
-    /**
+/**
  * Genera automáticamente 5 tickets con datos aleatorios y los encola como pendientes.
  */
     private static void generarTicketsIniciales() {
@@ -52,7 +52,7 @@ public class SistemaTickets {
         }
     }
 
-    /**
+/**
  * Permite procesar uno o más tickets de la cola hasta que se resuelvan o el usuario decida salir.
  * Cada ticket resuelto se almacena en un ABB con su tiempo de resolución.
  */
@@ -176,8 +176,7 @@ public class SistemaTickets {
         ticket.insertar("nombreCliente", nombre);
         ticket.insertar("emailCliente", email);
         ticket.insertar("descripcionProblema", problema);
-        ticket.insertar("fechaCreacion",
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        ticket.insertar("fechaCreacion", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
         colaTickets.encolar(ticket);
         System.out.println("\n¡Ticket registrado exitosamente!");
@@ -231,10 +230,6 @@ public class SistemaTickets {
             contador++;
         }
     }
-
-    /** Asegura y valida que los valores ingresados sean validos para el menu y que si se ingresan valores fuera del rango
-     * como 'abc', 'cinco' o '@' no se rompa la ejecucion del programa.
-     */
     /**
  * Lee y valida la opción ingresada en el menú, asegurándose de que sea un número válido.
  * Evita que se rompa el programa por entradas inválidas como letras o símbolos.
@@ -274,10 +269,6 @@ public class SistemaTickets {
         }
     }
 
-/**
- * Método principal del sistema.
- * Controla el flujo del programa y la interacción con el usuario.
- */
     /**
  * Método principal del sistema.
  * Controla el flujo del programa y la interacción con el usuario mediante el menú.

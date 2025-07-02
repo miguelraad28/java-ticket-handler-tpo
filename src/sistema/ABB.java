@@ -63,7 +63,7 @@ public class ABB {
         return nodo;
     }
 
-    /**
+/**
  * Muestra todos los tickets del ABB en orden ascendente de tiempo de resolución.
  */
     public void recorridoInorden() {
@@ -118,9 +118,9 @@ public class ABB {
         buscarTicketsPorTiempoRecursivo(nodo.derecho, tiempoBuscado);
     }
 
-    /**
-     * Muestra todos los tiempos únicos de resolución disponibles en el ABB.
-     */
+/**
+ * Muestra todos los tiempos únicos de resolución disponibles en el ABB.
+*/
     public void mostrarTiemposDisponibles() {
         if (raiz == null) {
             System.out.println("No hay tiempos registrados aún.");

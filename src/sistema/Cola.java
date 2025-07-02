@@ -14,10 +14,6 @@ public class Cola {
     }
 
 /**
- * Agrega un elemento al final de la cola.
- * @param dato Elemento a agregar.
- */
-    /**
  * Agrega un ticket al final de la cola.
  */
     public void encolar(Diccionario elemento) {
@@ -34,8 +30,7 @@ public class Cola {
         }
         tamanio++;
     }
-
-    /**
+ /**
  * Quita y devuelve el ticket del frente de la cola.
  */
     public Diccionario desencolar() {
@@ -47,8 +42,7 @@ public class Cola {
         tamanio--;
         return elemento;
     }
-
-    /**
+ /**
  * Retorna el primer nodo de la cola sin removerlo.
  */
     public NodoCola frente() {
@@ -57,19 +51,13 @@ public class Cola {
         }
         return primero;
     }
-
-/**
- * Verifica si la cola está vacía.
- * @return true si vacía, false si no.
- */
-    /**
+ /**
  * Retorna true si la cola está vacía, false en caso contrario.
  */
     public boolean estaVacia() {
         return tamanio == 0;
     }
-
-    /**
+ /**
  * Devuelve la cantidad de tickets en la cola.
  */
     public int tamanio() {
