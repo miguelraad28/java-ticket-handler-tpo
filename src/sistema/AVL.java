@@ -177,7 +177,7 @@ public class AVL {
             return;
         buscarTicketsPorTiempoRecursivo(nodo.izquierdo, tiempoBuscado);
         if (nodo.tiempoResolucion == tiempoBuscado) {
-            System.out.println("Tiempo de resolución: " + nodo.tiempoResolucion + " segundos");
+            System.out.println("\nTiempo de resolución: " + nodo.tiempoResolucion + " segundos");
             System.out.println("Cantidad de tickets con este tiempo: " + nodo.cantidadTickets);
             System.out.println("------------------------");
             for (int i = 0; i < nodo.cantidadTickets; i++) {
