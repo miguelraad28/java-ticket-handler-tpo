@@ -54,4 +54,8 @@ public class Diccionario {
         }
         return null;
     }
+    
+    public int obtenerTamanio() {
+        return tamanio;
+    }
 }

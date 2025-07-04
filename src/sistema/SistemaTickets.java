@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
 
 public class SistemaTickets {
     private static Cola colaTickets;
-    private static ABB ticketsResueltos;
+    private static AVL ticketsResueltos;
     private static Scanner scanner;
     private static Random random;
     private static long tiempoInicioDeSolucion;
@@ -23,7 +23,7 @@ public class SistemaTickets {
      */
     private static void inicializarSistema() {
         colaTickets = new Cola();
-        ticketsResueltos = new ABB();
+        ticketsResueltos = new AVL();
         scanner = new Scanner(System.in);
         random = new Random();
 

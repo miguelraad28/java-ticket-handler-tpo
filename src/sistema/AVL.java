@@ -4,24 +4,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Clase que implementa un Árbol Binario de Búsqueda (ABB).
- * Se utiliza para almacenar tickets resueltos ordenados por el tiempo de
- * resolución.
+ * Clase que implementa un Árbol AVL (ABB balanceado) para almacenar tickets
+ * resueltos ordenados por el tiempo de resolución.
  */
-public class ABB {
+public class AVL {
     public class Nodo {
         int tiempoResolucion;
         Nodo izquierdo;
         Nodo derecho;
         Diccionario[] tickets;
         int cantidadTickets;
+        int altura;
 
         Nodo(int tiempoResolucion) {
             this.tiempoResolucion = tiempoResolucion;
             this.izquierdo = null;
             this.derecho = null;
-            this.tickets = new Diccionario[10]; // Array inicial de 10 tickets
+            this.tickets = new Diccionario[10];
             this.cantidadTickets = 0;
+            this.altura = 1;
         }
 
         void agregarTicket(Diccionario ticket) {
@@ -36,12 +37,12 @@ public class ABB {
 
     public Nodo raiz;
 
-    public ABB() {
+    public AVL() {
         this.raiz = null;
     }
 
     /**
-     * Inserta un elemento en el árbol binario de búsqueda.
+     * Inserta un elemento en el árbol manteniéndolo balanceado (AVL).
      * 
      * @param tiempoResolucion Tiempo de resolución del ticket.
      * @param ticket           Ticket que se sumará al nodo del arbol
@@ -56,21 +57,93 @@ public class ABB {
             nuevo.agregarTicket(ticket);
             return nuevo;
         }
-
         if (tiempoResolucion < nodo.tiempoResolucion) {
             nodo.izquierdo = insertarRecursivo(nodo.izquierdo, tiempoResolucion, ticket);
         } else if (tiempoResolucion > nodo.tiempoResolucion) {
             nodo.derecho = insertarRecursivo(nodo.derecho, tiempoResolucion, ticket);
         } else {
             nodo.agregarTicket(ticket);
+            return nodo;
+        }
+
+        // Actualizar altura
+        nodo.altura = 1 + Math.max(
+                conseguirAltura(nodo.izquierdo),
+                conseguirAltura(nodo.derecho));
+
+        // Rebalancear
+        int balance = conseguirBalance(nodo);
+
+        // Caso Izquierda-Izquierda: rotación a la derecha
+        if (balance > 1 && tiempoResolucion < nodo.izquierdo.tiempoResolucion) {
+            return rotarDerecha(nodo);
+        }
+        // Caso Derecha-Derecha: rotación a la izquierda
+        if (balance < -1 && tiempoResolucion > nodo.derecho.tiempoResolucion) {
+            return rotarIzquierda(nodo);
+        }
+        // Caso Izquierda-Derecha
+        if (balance > 1 && tiempoResolucion > nodo.izquierdo.tiempoResolucion) {
+            nodo.izquierdo = rotarIzquierda(nodo.izquierdo);
+            return rotarDerecha(nodo);
+        }
+        // Caso Derecha-Izquierda
+        if (balance < -1 && tiempoResolucion < nodo.derecho.tiempoResolucion) {
+            nodo.derecho = rotarDerecha(nodo.derecho);
+            return rotarIzquierda(nodo);
         }
 
         return nodo;
     }
 
+    private int conseguirAltura(Nodo node) {
+        return (node == null) ? 0 : node.altura;
+    }
+
+    private int conseguirBalance(Nodo node) {
+        return (node == null) ? 0 : conseguirAltura(node.izquierdo) - conseguirAltura(node.derecho);
+    }
+
+    private Nodo rotarDerecha(Nodo y) {
+        Nodo x = y.izquierdo;
+        Nodo T2 = x.derecho;
+
+        // Rotación
+        x.derecho = y;
+        y.izquierdo = T2;
+
+        // Actualizar alturas
+        y.altura = 1 + Math.max(
+                conseguirAltura(y.izquierdo),
+                conseguirAltura(y.derecho));
+        x.altura = 1 + Math.max(
+                conseguirAltura(x.izquierdo),
+                conseguirAltura(x.derecho));
+
+        return x;
+    }
+
+    private Nodo rotarIzquierda(Nodo x) {
+        Nodo y = x.derecho;
+        Nodo T2 = y.izquierdo;
+
+        // Rotación
+        y.izquierdo = x;
+        x.derecho = T2;
+
+        // Actualizar alturas
+        x.altura = 1 + Math.max(
+                conseguirAltura(x.izquierdo),
+                conseguirAltura(x.derecho));
+        y.altura = 1 + Math.max(
+                conseguirAltura(y.izquierdo),
+                conseguirAltura(y.derecho));
+
+        return y;
+    }
+
     /**
-     * Muestra todos los tickets del ABB en orden ascendente de tiempo de
-     * resolución.
+     * Recorre el árbol en in-order mostrando tiempos y cantidad de tickets.
      */
     public void recorridoInorden() {
         recorridoInordenRecursivo(raiz);
@@ -88,31 +161,28 @@ public class ABB {
         }
     }
 
+    /**
+     * Busca y muestra tickets con un tiempo específico.
+     */
     public void buscarTicketsPorTiempo(int tiempoBuscado) {
         if (raiz == null) {
             System.out.println("No hay tickets resueltos en el sistema con el tiempo " + tiempoBuscado + ".");
-            return;
+        } else {
+            buscarTicketsPorTiempoRecursivo(raiz, tiempoBuscado);
         }
-        buscarTicketsPorTiempoRecursivo(raiz, tiempoBuscado);
     }
 
     private void buscarTicketsPorTiempoRecursivo(Nodo nodo, int tiempoBuscado) {
-        if (nodo == null) {
+        if (nodo == null)
             return;
-        }
-
-        // Buscar en el subárbol izquierdo
         buscarTicketsPorTiempoRecursivo(nodo.izquierdo, tiempoBuscado);
-
-        // Verificar si este nodo tiene el tiempo buscado
         if (nodo.tiempoResolucion == tiempoBuscado) {
-            System.out.println("\nTiempo de resolución: " + nodo.tiempoResolucion + " segundos");
+            System.out.println("Tiempo de resolución: " + nodo.tiempoResolucion + " segundos");
             System.out.println("Cantidad de tickets con este tiempo: " + nodo.cantidadTickets);
             System.out.println("------------------------");
-
             for (int i = 0; i < nodo.cantidadTickets; i++) {
                 Diccionario ticket = nodo.tickets[i];
-                System.out.println("\nTicket #" + (i + 1));
+                System.out.println("Ticket #" + (i + 1));
                 System.out.println("ID: " + ticket.obtener("ticketId"));
                 System.out.println("Cliente: " + ticket.obtener("nombreCliente"));
                 System.out.println("Email: " + ticket.obtener("emailCliente"));
@@ -121,19 +191,17 @@ public class ABB {
                 System.out.println("------------------------");
             }
         }
-
-        // Buscar en el subárbol derecho
         buscarTicketsPorTiempoRecursivo(nodo.derecho, tiempoBuscado);
     }
 
     /**
-     * Muestra todos los tiempos únicos de resolución disponibles en el ABB.
+     * Muestra todos los tiempos únicos disponibles.
      */
     public void mostrarTiemposDisponibles() {
         if (raiz == null) {
             System.out.println("No hay tiempos registrados aún.");
         } else {
-            System.out.println("\nTiempos registrados disponibles:");
+            System.out.println("Tiempos registrados disponibles:");
             mostrarTiempos(raiz);
         }
     }
