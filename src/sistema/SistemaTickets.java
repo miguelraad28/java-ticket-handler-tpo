@@ -199,8 +199,7 @@ public class SistemaTickets {
         ticket.insertar("nombreCliente", nombre);
         ticket.insertar("emailCliente", email);
         ticket.insertar("descripcionProblema", problema);
-        ticket.insertar("fechaCreacion",
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        ticket.insertar("fechaCreacion", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
         colaTickets.encolar(ticket);
         System.out.println("\n¡Ticket registrado exitosamente!");
@@ -260,11 +259,6 @@ public class SistemaTickets {
      * Asegura y valida que los valores ingresados sean validos para el menu y que
      * si se ingresan valores fuera del rango
      * como 'abc', 'cinco' o '@' no se rompa la ejecucion del programa.
-     */
-    /**
-     * Lee y valida la opción ingresada en el menú, asegurándose de que sea un
-     * número válido.
-     * Evita que se rompa el programa por entradas inválidas como letras o símbolos.
      */
     private static int leerOpcionDeMenu(int minimo, int maximo) {
         int opcion = -1;
@@ -345,11 +339,6 @@ public class SistemaTickets {
     /**
      * Método principal del sistema.
      * Controla el flujo del programa y la interacción con el usuario.
-     */
-    /**
-     * Método principal del sistema.
-     * Controla el flujo del programa y la interacción con el usuario mediante el
-     * menú.
      */
     public static void main(String[] args) {
         inicializarSistema();
