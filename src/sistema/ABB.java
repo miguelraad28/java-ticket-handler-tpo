@@ -1,8 +1,12 @@
 package sistema;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Clase que implementa un Árbol Binario de Búsqueda (ABB).
- * Se utiliza para almacenar tickets resueltos ordenados por el tiempo de resolución.
+ * Se utiliza para almacenar tickets resueltos ordenados por el tiempo de
+ * resolución.
  */
 public class ABB {
     public class Nodo {
@@ -36,11 +40,12 @@ public class ABB {
         this.raiz = null;
     }
 
-/**
- * Inserta un elemento en el árbol binario de búsqueda.
- * @param clave Clave a insertar.
- * @param valor Valor asociado a la clave.
- */
+    /**
+     * Inserta un elemento en el árbol binario de búsqueda.
+     * 
+     * @param tiempoResolucion Tiempo de resolución del ticket.
+     * @param ticket           Ticket que se sumará al nodo del arbol
+     */
     public void insertar(int tiempoResolucion, Diccionario ticket) {
         raiz = insertarRecursivo(raiz, tiempoResolucion, ticket);
     }
@@ -64,8 +69,9 @@ public class ABB {
     }
 
     /**
- * Muestra todos los tickets del ABB en orden ascendente de tiempo de resolución.
- */
+     * Muestra todos los tickets del ABB en orden ascendente de tiempo de
+     * resolución.
+     */
     public void recorridoInorden() {
         recorridoInordenRecursivo(raiz);
     }
@@ -73,16 +79,18 @@ public class ABB {
     private void recorridoInordenRecursivo(Nodo nodo) {
         if (nodo != null) {
             recorridoInordenRecursivo(nodo.izquierdo);
+
             System.out.println("Tiempo de resolución: " + nodo.tiempoResolucion + " segundos");
             System.out.println("Cantidad de tickets: " + nodo.cantidadTickets);
             System.out.println("------------------------");
+
             recorridoInordenRecursivo(nodo.derecho);
         }
     }
 
     public void buscarTicketsPorTiempo(int tiempoBuscado) {
         if (raiz == null) {
-            System.out.println("No hay tickets resueltos en el sistema con el tiempo " + tiempoBuscado +".");
+            System.out.println("No hay tickets resueltos en el sistema con el tiempo " + tiempoBuscado + ".");
             return;
         }
         buscarTicketsPorTiempoRecursivo(raiz, tiempoBuscado);
@@ -136,5 +144,84 @@ public class ABB {
             System.out.println("• " + nodo.tiempoResolucion + " segundos");
             mostrarTiempos(nodo.derecho);
         }
+    }
+
+    public void generarReportePorEmpleado(Map<String, Empleado> empleados) {
+        // <ID empl, cant>
+        Map<String, Integer> cantidadPorEmpleado = new HashMap<>();
+        Map<String, Integer> mejorTiempoPorEmpleado = new HashMap<>();
+        Map<String, Integer> peorTiempoPorEmpleado = new HashMap<>();
+        Map<String, Long> sumaTiemposPorEmpleado = new HashMap<>();
+
+        // Esta función actualiza las variables directamente, no retorna nada
+        recolectarEstadisticasEmpleado(raiz, cantidadPorEmpleado, mejorTiempoPorEmpleado,
+                peorTiempoPorEmpleado, sumaTiemposPorEmpleado);
+
+        // Creamos un array con los keySet() de cantidadPorEmpleado (IDs de empleados)
+        for (String empleadoId : cantidadPorEmpleado.keySet()) {
+            Empleado empleado = empleados.get(empleadoId);
+            if (empleado != null) {
+                System.out.println("\nEmpleado: " + empleado.getNombre() + " (ID: " + empleadoId + ")");
+                System.out.println("Total de tickets resueltos: " + cantidadPorEmpleado.get(empleadoId));
+                System.out
+                        .println("Mejor tiempo de resolución: " + mejorTiempoPorEmpleado.get(empleadoId) + " segundos");
+                System.out.println("Peor tiempo de resolución: " + peorTiempoPorEmpleado.get(empleadoId) + " segundos");
+
+                double promedio = sumaTiemposPorEmpleado.get(empleadoId)
+                        / (double) cantidadPorEmpleado.get(empleadoId);
+
+                // %.2f es un formateador de decimales para que se muestren solo 2 decimales
+                System.out.printf("Tiempo promedio de resolución: %.2f segundos\n", promedio);
+                System.out.println("------------------------");
+            }
+        }
+    }
+
+    /*
+     * Recorre el árbol y recolecta estadísticas por empleado.
+     * 
+     * La complejidad es de O(n + m) donde n es el número de nodos del árbol y m es
+     * el número de tickets por nodo.
+     * 
+     */
+    private void recolectarEstadisticasEmpleado(Nodo nodo,
+            Map<String, Integer> cantidadPorEmpleado,
+            Map<String, Integer> mejorTiempoPorEmpleado,
+            Map<String, Integer> peorTiempoPorEmpleado,
+            Map<String, Long> sumaTiemposPorEmpleado) {
+        if (nodo == null)
+            return;
+
+        // Recorrer subárbol izquierdo
+        recolectarEstadisticasEmpleado(nodo.izquierdo, cantidadPorEmpleado, mejorTiempoPorEmpleado,
+                peorTiempoPorEmpleado, sumaTiemposPorEmpleado);
+
+        // En 1 sólo recorrido de los tickets, vamos alternando frente a qué empleado
+        // adicionarle las estadísticas
+        for (int i = 0; i < nodo.cantidadTickets; i++) {
+            // Paso 1: Obtenemos el ticket
+            Diccionario ticket = nodo.tickets[i];
+
+            // Paso 2: Obtenemos el ID del empleado que resolvió el ticket
+            String empleadoId = (String) ticket.obtener("empleadoResolucionId");
+
+            // Paso 3: Actualizamos la cantidad de tickets resueltos por el empleado
+            cantidadPorEmpleado.merge(empleadoId, 1, Integer::sum);
+
+            // Paso 3.1: Actualizamos el mejor tiempo de resolución del empleado
+            mejorTiempoPorEmpleado.merge(empleadoId, nodo.tiempoResolucion,
+                    (actual, nuevo) -> Math.min(actual, nuevo));
+
+            // Paso 3.2: Actualizamos el peor tiempo de resolución del empleado
+            peorTiempoPorEmpleado.merge(empleadoId, nodo.tiempoResolucion,
+                    (actual, nuevo) -> Math.max(actual, nuevo));
+
+            // Paso 3.3: Actualizamos la suma de tiempos para el promedio
+            sumaTiemposPorEmpleado.merge(empleadoId, (long) nodo.tiempoResolucion, Long::sum);
+        }
+
+        // Recorrer subárbol derecho
+        recolectarEstadisticasEmpleado(nodo.derecho, cantidadPorEmpleado, mejorTiempoPorEmpleado,
+                peorTiempoPorEmpleado, sumaTiemposPorEmpleado);
     }
 }

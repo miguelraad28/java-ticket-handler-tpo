@@ -2,6 +2,8 @@ package sistema;
 
 import java.util.Scanner;
 import java.util.Random;
+import java.util.HashMap;
+import java.util.Map;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -11,21 +13,31 @@ public class SistemaTickets {
     private static Scanner scanner;
     private static Random random;
     private static long tiempoInicioDeSolucion;
+    private static Empleado empleadoActual;
+    private static Map<String, Empleado> empleados;
 
     /**
- * Inicializa las estructuras del sistema: cola de tickets, árbol de tickets resueltos,
- * scanner para entrada por consola y generador aleatorio.
- */
+     * Inicializa las estructuras del sistema: cola de tickets, árbol de tickets
+     * resueltos,
+     * scanner para entrada por consola y generador aleatorio.
+     */
     private static void inicializarSistema() {
         colaTickets = new Cola();
         ticketsResueltos = new ABB();
         scanner = new Scanner(System.in);
         random = new Random();
+
+        // Inicialización de empleados
+        empleados = new HashMap<>();
+        empleados.put("EMP001", new Empleado("EMP001", "Miguel", "pass123"));
+        empleados.put("EMP002", new Empleado("EMP002", "Roberto", "pass456"));
+        empleados.put("EMP003", new Empleado("EMP003", "Felipe", "pass789"));
     }
 
     /**
- * Genera automáticamente 5 tickets con datos aleatorios y los encola como pendientes.
- */
+     * Genera automáticamente 5 tickets con datos aleatorios y los encola como
+     * pendientes.
+     */
     private static void generarTicketsIniciales() {
         String[] nombres = { "Juan", "María", "Carlos", "Ana", "Pedro", "Laura", "Miguel", "Sofía" };
         String[] dominios = { "gmail.com", "hotmail.com", "yahoo.com", "outlook.com" };
@@ -53,9 +65,10 @@ public class SistemaTickets {
     }
 
     /**
- * Permite procesar uno o más tickets de la cola hasta que se resuelvan o el usuario decida salir.
- * Cada ticket resuelto se almacena en un ABB con su tiempo de resolución.
- */
+     * Permite procesar uno o más tickets de la cola hasta que se resuelvan o el
+     * usuario decida salir.
+     * Cada ticket resuelto se almacena en un ABB con su tiempo de resolución.
+     */
     private static void procesarTickets() {
         if (colaTickets.estaVacia()) {
             System.out.println("No hay tickets pendientes para resolver.");
@@ -70,7 +83,6 @@ public class SistemaTickets {
             String entrada = "";
             System.out.println("\n¿Desea resolver este ticket ahora? (Y para resolver, Q para volver al menú)");
 
-            // Asegura que se lea una línea no vacía
             while (entrada.isEmpty()) {
                 entrada = scanner.nextLine().trim().toUpperCase();
             }
@@ -84,20 +96,26 @@ public class SistemaTickets {
             }
 
             if (entrada.equals("Q")) {
-                colaTickets.encolar(ticketActual);  // lo devolvemos
+                colaTickets.encolar(ticketActual);
                 break;
             }
 
             long tiempoResolucion = (System.currentTimeMillis() - tiempoInicioDeSolucion) / 1000;
+
+            ticketActual.insertar("empleadoResolucionId", empleadoActual.getId());
+
             ticketsResueltos.insertar((int) tiempoResolucion, ticketActual);
-            System.out.println("Ticket resuelto en " + tiempoResolucion + " segundos.\n");
+
+            System.out.println("Ticket resuelto en " + tiempoResolucion + " segundos por " + empleadoActual.getNombre()
+                    + " (ID: " + empleadoActual.getId() + ").\n");
 
             if (colaTickets.estaVacia()) {
                 System.out.println("Todos los tickets han sido resueltos.");
                 break;
             }
 
-            System.out.println("¿Desea resolver otro ticket? (Y para continuar, cualquier otra tecla para volver al menú):");
+            System.out.println(
+                    "¿Desea resolver otro ticket? (Y para continuar, cualquier otra tecla para volver al menú):");
             entrada = "";
             while (entrada.isEmpty()) {
                 entrada = scanner.nextLine().trim().toUpperCase();
@@ -110,8 +128,9 @@ public class SistemaTickets {
     }
 
     /**
- * Muestra en consola los detalles de un ticket (ID, cliente, email, problema, fecha).
- */
+     * Muestra en consola los detalles de un ticket (ID, cliente, email, problema,
+     * fecha).
+     */
     private static void mostrarTicket(Diccionario ticket) {
         System.out.println("\n=== TICKET ACTUAL ===");
         System.out.println("ID: " + ticket.obtener("ticketId"));
@@ -123,23 +142,27 @@ public class SistemaTickets {
     }
 
     /**
- * Muestra el menú principal del sistema con todas las opciones disponibles.
- */
+     * Muestra el menú principal del sistema con todas las opciones disponibles.
+     */
     private static void mostrarMenu() {
         System.out.println("\n=== SISTEMA DE GESTIÓN DE TICKETS ===");
+        System.out.println("Usuario actual: " + empleadoActual.getNombre() + " (ID: " + empleadoActual.getId() + ")");
         System.out.println("1) Empezar jornada para resolver tickets");
         System.out.println("2) Ver cola de tickets y cantidad pendientes");
         System.out.println("3) Ver tickets resueltos por tiempo");
         System.out.println("4) Ver todos los tickets resueltos en X tiempo");
+        System.out.println("5) Ver reporte de tickets por empleado");
+        System.out.println("6) Registrar nuevo ticket como en calidad de cliente");
         System.out.println("******************************************************");
-        System.out.println("5) Registrar nuevo ticket como en calidad de cliente");
+        System.out.println("7) Cerrar sesión de " + empleadoActual.getNombre());
         System.out.println("0) Salir");
         System.out.println("=====================================");
     }
 
     /**
- * Permite a un cliente registrar un nuevo ticket manualmente, validando los campos.
- */
+     * Permite a un cliente registrar un nuevo ticket manualmente, validando los
+     * campos.
+     */
     private static void registrarNuevoTicket() {
         Diccionario ticket = new Diccionario();
 
@@ -184,8 +207,9 @@ public class SistemaTickets {
     }
 
     /**
- * Solicita un tiempo al usuario y busca todos los tickets resueltos con ese tiempo exacto.
- */
+     * Solicita un tiempo al usuario y busca todos los tickets resueltos con ese
+     * tiempo exacto.
+     */
     private static void verTicketsResueltosEnTiempo() {
         System.out.println("\n=== VER TICKETS RESUELTOS POR TIEMPO ===");
 
@@ -203,8 +227,8 @@ public class SistemaTickets {
     }
 
     /**
- * Muestra todos los tickets pendientes en la cola junto con su información.
- */
+     * Muestra todos los tickets pendientes en la cola junto con su información.
+     */
     private static void verColaTickets() {
         if (colaTickets.estaVacia()) {
             System.out.println("\nNo hay tickets pendientes en la cola.");
@@ -232,13 +256,16 @@ public class SistemaTickets {
         }
     }
 
-    /** Asegura y valida que los valores ingresados sean validos para el menu y que si se ingresan valores fuera del rango
+    /**
+     * Asegura y valida que los valores ingresados sean validos para el menu y que
+     * si se ingresan valores fuera del rango
      * como 'abc', 'cinco' o '@' no se rompa la ejecucion del programa.
      */
     /**
- * Lee y valida la opción ingresada en el menú, asegurándose de que sea un número válido.
- * Evita que se rompa el programa por entradas inválidas como letras o símbolos.
- */
+     * Lee y valida la opción ingresada en el menú, asegurándose de que sea un
+     * número válido.
+     * Evita que se rompa el programa por entradas inválidas como letras o símbolos.
+     */
     private static int leerOpcionDeMenu(int minimo, int maximo) {
         int opcion = -1;
         boolean valida = false;
@@ -262,7 +289,6 @@ public class SistemaTickets {
         return opcion;
     }
 
-
     private static int leerNumero() {
         while (true) {
             String entrada = scanner.nextLine().trim();
@@ -274,22 +300,66 @@ public class SistemaTickets {
         }
     }
 
-/**
- * Método principal del sistema.
- * Controla el flujo del programa y la interacción con el usuario.
- */
+    private static void iniciarSesion() {
+        System.out.println("\n=== INICIO DE SESIÓN ===");
+        boolean loginExitoso = false;
+
+        while (!loginExitoso) {
+            // Este ID de empleado debe coincidir con la 'base de datos' de empleados de la
+            // linea 17
+            System.out.print("Ingrese su ID de empleado: ");
+            String id = scanner.nextLine().trim();
+
+            // La contraseña debe coincidir con la 'base de datos' de empleados de la linea
+            // 17
+            System.out.print("Ingrese su contraseña: ");
+            String password = scanner.nextLine().trim();
+
+            // Paso 1: Buscar el empleado por id
+            Empleado empleado = empleados.get(id);
+            // Paso 2: Verificar si el empleado existe y si la contraseña es correcta
+            if (empleado != null && empleado.validarPassword(password)) {
+                // Paso 3: Si es correcto, asignar el empleado actual
+                empleadoActual = empleado;
+                // Paso 4: Mostrar mensaje de bienvenida
+                System.out.println("\n¡Bienvenido/a, " + empleado.getNombre() + "!");
+                // Paso 5: Marcar el inicio de sesión como exitoso
+                loginExitoso = true;
+            } else {
+                System.out.println("Credenciales inválidas. Por favor, intente nuevamente.");
+            }
+        }
+    }
+
+    private static void mostrarReportePorEmpleado() {
+        System.out.println("\n=== REPORTE DE TICKETS POR EMPLEADO ===");
+
+        if (ticketsResueltos.raiz == null) {
+            System.out.println("No hay tickets resueltos registrados aún.");
+            return;
+        }
+
+        ticketsResueltos.generarReportePorEmpleado(empleados);
+    }
+
     /**
- * Método principal del sistema.
- * Controla el flujo del programa y la interacción con el usuario mediante el menú.
- */
+     * Método principal del sistema.
+     * Controla el flujo del programa y la interacción con el usuario.
+     */
+    /**
+     * Método principal del sistema.
+     * Controla el flujo del programa y la interacción con el usuario mediante el
+     * menú.
+     */
     public static void main(String[] args) {
         inicializarSistema();
         generarTicketsIniciales();
+        iniciarSesion();
 
         int opcion;
         do {
             mostrarMenu();
-            opcion = leerOpcionDeMenu(0, 5); // Cambiá 5 si tenés más opciones
+            opcion = leerOpcionDeMenu(0, 7); // Actualizado para incluir la opción de cerrar sesión
 
             switch (opcion) {
                 case 1:
@@ -306,12 +376,19 @@ public class SistemaTickets {
                     verTicketsResueltosEnTiempo();
                     break;
                 case 5:
+                    mostrarReportePorEmpleado();
+                    break;
+                case 6:
                     registrarNuevoTicket();
+                    break;
+                case 7:
+                    System.out.println("\nCerrando sesión de " + empleadoActual.getNombre() + "...");
+                    iniciarSesion();
                     break;
                 case 0:
                     System.out.println("\n¡Gracias por usar el sistema!");
                     break;
-                default :
+                default:
                     System.out.println("\nOpción inválida. Por favor, intente nuevamente.");
             }
         } while (opcion != 0);
