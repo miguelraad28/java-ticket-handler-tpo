@@ -17,6 +17,31 @@ public class SistemaTickets {
     private static Map<String, Empleado> empleados;
 
     /**
+     * Verifica si una cadena de texto está vacía o solo contiene espacios.
+     * Se utiliza para validar entradas obligatorias.
+     */
+    private static boolean estaVacio(String entrada) {
+        return entrada == null || entrada.trim().isEmpty();
+    }
+
+    /**
+     * Devuelve true si el nombre es inválido (contiene caracteres no permitidos).
+     * Solo se permiten letras (mayúsculas/minúsculas), tildes y espacios.
+     */
+    private static boolean nombreEsInvalido(String nombre) {
+        return !nombre.matches("^[A-Za-záéíóúÁÉÍÓÚñÑ ]+$");
+    }
+
+    /**
+     * Devuelve true si el email NO tiene un formato válido tipo usuario@dominio.
+     * No valida la existencia real del dominio, solo el formato.
+     */
+    private static boolean emailEsInvalido(String email) {
+        return !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+    }
+
+
+    /**
      * Inicializa las estructuras del sistema: cola de tickets, árbol de tickets
      * resueltos,
      * scanner para entrada por consola y generador aleatorio.
@@ -80,20 +105,19 @@ public class SistemaTickets {
             mostrarTicket(ticketActual);
             tiempoInicioDeSolucion = System.currentTimeMillis();
 
-            String entrada = "";
-            System.out.println("\n¿Desea resolver este ticket ahora? (Y para resolver, Q para volver al menú)");
-
-            while (entrada.isEmpty()) {
+            String entrada;
+            do {
+                System.out.println("\n¿Desea resolver este ticket ahora? (Y para resolver, Q para volver al menú):");
                 entrada = scanner.nextLine().trim().toUpperCase();
-            }
 
-            while (!entrada.equals("Y") && !entrada.equals("Q")) {
-                System.out.println("Entrada inválida. Ingrese 'Y' para resolver o 'Q' para volver al menú:");
-                entrada = scanner.nextLine().trim().toUpperCase();
-                while (entrada.isEmpty()) {
-                    entrada = scanner.nextLine().trim().toUpperCase();
+                if (entrada.isEmpty()) {
+                    System.out.println("La entrada no puede estar vacía.");
+                } else if (!entrada.equals("Y") && !entrada.equals("Q")) {
+                    System.out.println("Entrada inválida. Ingrese 'Y' para resolver o 'Q' para volver al menú.");
                 }
-            }
+
+            } while (entrada.isEmpty() || (!entrada.equals("Y") && !entrada.equals("Q")));
+
 
             if (entrada.equals("Q")) {
                 colaTickets.encolar(ticketActual);
@@ -172,37 +196,39 @@ public class SistemaTickets {
         do {
             System.out.print("Ingrese su nombre: ");
             nombre = scanner.nextLine().trim();
-            if (nombre.isEmpty()) {
+            if (estaVacio(nombre)) {
                 System.out.println("El nombre no puede estar vacío.");
+            } else if (nombreEsInvalido(nombre)) {
+                System.out.println("El nombre solo puede contener letras.");
             }
-        } while (nombre.isEmpty());
+        } while (estaVacio(nombre) || nombreEsInvalido(nombre));
+        ticket.insertar("nombre", nombre);
 
         String email;
         do {
             System.out.print("Ingrese su email: ");
             email = scanner.nextLine().trim();
-            if (email.isEmpty()) {
+            if (estaVacio(email)) {
                 System.out.println("El email no puede estar vacío.");
+            } else if (emailEsInvalido(email)) {
+                System.out.println("Formato de email inválido. Ej: usuario@dominio.com");
             }
-        } while (email.isEmpty());
+        } while (estaVacio(email) || emailEsInvalido(email));
+        ticket.insertar("email", email);
 
-        String problema;
-        do {
-            System.out.print("Ingrese la descripción del problema: ");
-            problema = scanner.nextLine().trim();
-            if (problema.isEmpty()) {
-                System.out.println("La descripción del problema no puede estar vacía.");
-            }
-        } while (problema.isEmpty());
-
-        ticket.insertar("ticketId", String.valueOf(colaTickets.tamanio() + 1));
-        ticket.insertar("nombreCliente", nombre);
-        ticket.insertar("emailCliente", email);
-        ticket.insertar("descripcionProblema", problema);
-        ticket.insertar("fechaCreacion", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        System.out.print("Describa su problema: ");
+        String descripcion = scanner.nextLine().trim();
+        while (estaVacio(descripcion)) {
+            System.out.print("La descripción no puede estar vacía. \nIntente nuevamente:");
+            descripcion = scanner.nextLine().trim();
+        }
+        ticket.insertar("descripcion", descripcion);
+        ticket.insertar("ticketId", String.valueOf(System.currentTimeMillis()));
+        ticket.insertar("fechaCreacion", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
 
         colaTickets.encolar(ticket);
-        System.out.println("\n¡Ticket registrado exitosamente!");
+
+        System.out.println("¡Ticket registrado correctamente y encolado como pendiente!");
     }
 
     /**
@@ -214,7 +240,7 @@ public class SistemaTickets {
 
         if (ticketsResueltos.raiz == null) {
             System.out.println("No hay tickets resueltos registrados aún.");
-            return; // 🔁 Vuelve automáticamente al menú principal
+            return; // Vuelve automáticamente al menú principal
         }
 
         ticketsResueltos.mostrarTiemposDisponibles();
@@ -287,7 +313,7 @@ public class SistemaTickets {
         while (true) {
             String entrada = scanner.nextLine().trim();
             try {
-                return Integer.parseInt(entrada); // ✔️ Si es válido, lo retorna
+                return Integer.parseInt(entrada); // Si es válido, lo retorna
             } catch (NumberFormatException e) {
                 System.out.print("Entrada inválida. Ingrese un número entero: ");
             }
@@ -295,35 +321,39 @@ public class SistemaTickets {
     }
 
     private static void iniciarSesion() {
-        System.out.println("\n=== INICIO DE SESIÓN ===");
-        boolean loginExitoso = false;
+        System.out.println("\n=== INICIAR SESIÓN ===");
 
-        while (!loginExitoso) {
-            // Este ID de empleado debe coincidir con la 'base de datos' de empleados de la
-            // linea 17
-            System.out.print("Ingrese su ID de empleado: ");
-            String id = scanner.nextLine().trim();
-
-            // La contraseña debe coincidir con la 'base de datos' de empleados de la linea
-            // 17
-            System.out.print("Ingrese su contraseña: ");
-            String password = scanner.nextLine().trim();
-
-            // Paso 1: Buscar el empleado por id
-            Empleado empleado = empleados.get(id);
-            // Paso 2: Verificar si el empleado existe y si la contraseña es correcta
-            if (empleado != null && empleado.validarPassword(password)) {
-                // Paso 3: Si es correcto, asignar el empleado actual
-                empleadoActual = empleado;
-                // Paso 4: Mostrar mensaje de bienvenida
-                System.out.println("\n¡Bienvenido/a, " + empleado.getNombre() + "!");
-                // Paso 5: Marcar el inicio de sesión como exitoso
-                loginExitoso = true;
-            } else {
-                System.out.println("Credenciales inválidas. Por favor, intente nuevamente.");
+        String id;
+        do {
+            System.out.print("Ingrese su ID: ");
+            id = scanner.nextLine().trim().toUpperCase();
+            if (estaVacio(id)) {
+                System.out.println("El ID no puede estar vacío.");
             }
+        } while (estaVacio(id));
+
+        String password;
+        do {
+            System.out.print("Ingrese su contraseña: ");
+            password = scanner.nextLine().trim();
+            if (estaVacio(password)) {
+                System.out.println("La contraseña no puede estar vacía.");
+            }
+        } while (estaVacio(password));
+
+        if (empleados.containsKey(id)) {
+            Empleado empleado = empleados.get(id);
+            if (empleado.validarPassword(password)) {
+                empleadoActual = empleado;
+                System.out.println("Bienvenido, " + empleado.getNombre() + "!");
+            } else {
+                System.out.println("Contraseña incorrecta.");
+            }
+        } else {
+            System.out.println("ID no encontrado.");
         }
     }
+
 
     private static void mostrarReportePorEmpleado() {
         System.out.println("\n=== REPORTE DE TICKETS POR EMPLEADO ===");
@@ -343,12 +373,16 @@ public class SistemaTickets {
     public static void main(String[] args) {
         inicializarSistema();
         generarTicketsIniciales();
-        iniciarSesion();
+
+        // 🔐 Bucle que obliga a iniciar sesión válida antes de avanzar
+        while (empleadoActual == null) {
+            iniciarSesion();
+        }
 
         int opcion;
         do {
             mostrarMenu();
-            opcion = leerOpcionDeMenu(0, 7); // Actualizado para incluir la opción de cerrar sesión
+            opcion = leerOpcionDeMenu(0, 7);
 
             switch (opcion) {
                 case 1:
@@ -372,7 +406,12 @@ public class SistemaTickets {
                     break;
                 case 7:
                     System.out.println("\nCerrando sesión de " + empleadoActual.getNombre() + "...");
-                    iniciarSesion();
+                    empleadoActual = null;
+
+                    // 🔁 Requiere nuevo login para continuar
+                    while (empleadoActual == null) {
+                        iniciarSesion();
+                    }
                     break;
                 case 0:
                     System.out.println("\n¡Gracias por usar el sistema!");
@@ -380,6 +419,7 @@ public class SistemaTickets {
                 default:
                     System.out.println("\nOpción inválida. Por favor, intente nuevamente.");
             }
+
         } while (opcion != 0);
     }
 }
