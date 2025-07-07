@@ -156,7 +156,21 @@ public class AVL {
             System.out.println("Tiempo de resolución: " + nodo.tiempoResolucion + " segundos");
             System.out.println("Cantidad de tickets: " + nodo.cantidadTickets);
             System.out.println("------------------------");
-
+            if (nodo.cantidadTickets == 1) {
+                System.out.println("--- Detalle del ticket ---");
+            } else {
+                System.out.println("--- Detalles de los tickets ---");
+            }
+            for (int i = 0; i < nodo.cantidadTickets; i++) {
+                Diccionario ticket = nodo.tickets[i];
+                System.out.println("Ticket ID: " + ticket.obtener("ticketId"));
+                System.out.println("Cliente: " + ticket.obtener("nombreCliente"));
+                System.out.println("Email: " + ticket.obtener("emailCliente"));
+                System.out.println("Problema: " + ticket.obtener("descripcionProblema"));
+                System.out.println("Fecha de creación: " + ticket.obtener("fechaCreacion"));
+                System.out.println("Empleado que lo resolvió: " + ticket.obtener("empleadoResolucionId"));
+                System.out.println("------------------------");
+            }
             recorridoInordenRecursivo(nodo.derecho);
         }
     }

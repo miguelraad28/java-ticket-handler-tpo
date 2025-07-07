@@ -15,6 +15,7 @@ public class SistemaTickets {
     private static long tiempoInicioDeSolucion;
     private static Empleado empleadoActual;
     private static Map<String, Empleado> empleados;
+    private static int contadorTicketsManual = 6; // si los 5 primeros ya están creados por cuestiones de testeo y ejemplos
 
     /**
      * Verifica si una cadena de texto está vacía o solo contiene espacios.
@@ -202,7 +203,7 @@ public class SistemaTickets {
                 System.out.println("El nombre solo puede contener letras.");
             }
         } while (estaVacio(nombre) || nombreEsInvalido(nombre));
-        ticket.insertar("nombre", nombre);
+        ticket.insertar("nombreCliente", nombre);
 
         String email;
         do {
@@ -214,7 +215,7 @@ public class SistemaTickets {
                 System.out.println("Formato de email inválido. Ej: usuario@dominio.com");
             }
         } while (estaVacio(email) || emailEsInvalido(email));
-        ticket.insertar("email", email);
+        ticket.insertar("emailCliente", email);
 
         System.out.print("Describa su problema: ");
         String descripcion = scanner.nextLine().trim();
@@ -222,8 +223,8 @@ public class SistemaTickets {
             System.out.print("La descripción no puede estar vacía. \nIntente nuevamente:");
             descripcion = scanner.nextLine().trim();
         }
-        ticket.insertar("descripcion", descripcion);
-        ticket.insertar("ticketId", String.valueOf(System.currentTimeMillis()));
+        ticket.insertar("descripcionProblema", descripcion);
+        ticket.insertar("ticketId", String.valueOf(contadorTicketsManual++));
         ticket.insertar("fechaCreacion", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
 
         colaTickets.encolar(ticket);
@@ -408,7 +409,7 @@ public class SistemaTickets {
                     System.out.println("\nCerrando sesión de " + empleadoActual.getNombre() + "...");
                     empleadoActual = null;
 
-                    // 🔁 Requiere nuevo login para continuar
+                    // Requiere nuevo login para continuar
                     while (empleadoActual == null) {
                         iniciarSesion();
                     }
